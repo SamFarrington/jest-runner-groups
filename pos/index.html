@@ -1,0 +1,471 @@
+<title>Fair BBQ Till</title>
+<meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1, user-scalable=no, viewport-fit=cover" />
+<style>
+  :root {
+    --ground: #faf6f0;
+    --panel: #ffffff;
+    --panel-2: #f4ece2;
+    --ink: #241c16;
+    --ink-soft: #6d5f52;
+    --line: #e7dccd;
+    --ember: #d9531e;
+    --ember-ink: #ffffff;
+    --paid: #2e7d46;
+    --paid-soft: #e7f2ea;
+    --shadow: 0 1px 2px rgba(60, 40, 20, .08), 0 6px 20px rgba(60, 40, 20, .06);
+    --radius: 16px;
+  }
+  @media (prefers-color-scheme: dark) {
+    :root {
+      --ground: #17130f;
+      --panel: #221c16;
+      --panel-2: #2c241c;
+      --ink: #f2eae0;
+      --ink-soft: #b3a291;
+      --line: #372c22;
+      --ember: #f0762e;
+      --ember-ink: #1a1109;
+      --paid: #56c07a;
+      --paid-soft: #1f3325;
+      --shadow: 0 1px 2px rgba(0, 0, 0, .4), 0 6px 20px rgba(0, 0, 0, .35);
+    }
+  }
+  :root[data-theme="light"] {
+    --ground: #faf6f0; --panel: #ffffff; --panel-2: #f4ece2; --ink: #241c16;
+    --ink-soft: #6d5f52; --line: #e7dccd; --ember: #d9531e; --ember-ink: #ffffff;
+    --paid: #2e7d46; --paid-soft: #e7f2ea;
+    --shadow: 0 1px 2px rgba(60,40,20,.08), 0 6px 20px rgba(60,40,20,.06);
+  }
+  :root[data-theme="dark"] {
+    --ground: #17130f; --panel: #221c16; --panel-2: #2c241c; --ink: #f2eae0;
+    --ink-soft: #b3a291; --line: #372c22; --ember: #f0762e; --ember-ink: #1a1109;
+    --paid: #56c07a; --paid-soft: #1f3325;
+    --shadow: 0 1px 2px rgba(0,0,0,.4), 0 6px 20px rgba(0,0,0,.35);
+  }
+
+  * { box-sizing: border-box; -webkit-tap-highlight-color: transparent; }
+  html, body { margin: 0; height: 100%; }
+  body {
+    background: var(--ground);
+    color: var(--ink);
+    font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
+    font-size: 17px;
+    line-height: 1.35;
+    -webkit-font-smoothing: antialiased;
+    display: flex;
+    flex-direction: column;
+    min-height: 100dvh;
+  }
+  .tnum { font-variant-numeric: tabular-nums; }
+
+  /* Header */
+  header {
+    position: sticky; top: 0; z-index: 20;
+    background: color-mix(in srgb, var(--ground) 88%, transparent);
+    backdrop-filter: blur(10px);
+    border-bottom: 1px solid var(--line);
+    padding: max(10px, env(safe-area-inset-top)) 14px 10px;
+  }
+  .brand { display: flex; align-items: center; gap: 9px; margin-bottom: 10px; }
+  .brand h1 { font-size: 19px; font-weight: 800; margin: 0; letter-spacing: -.01em; }
+  .brand .flame { font-size: 22px; }
+  .brand .spacer { flex: 1; }
+  .brand .count { font-size: 13px; color: var(--ink-soft); font-weight: 600; }
+
+  .tabs { display: flex; gap: 6px; background: var(--panel-2); padding: 4px; border-radius: 12px; }
+  .tabs button {
+    flex: 1; border: 0; background: transparent; color: var(--ink-soft);
+    font: inherit; font-weight: 700; font-size: 15px; padding: 9px; border-radius: 9px;
+    cursor: pointer; transition: background .15s, color .15s;
+  }
+  .tabs button[aria-selected="true"] { background: var(--panel); color: var(--ink); box-shadow: var(--shadow); }
+
+  main { flex: 1; padding: 14px; padding-bottom: 0; }
+  .view { display: none; }
+  .view.active { display: block; }
+
+  /* Menu */
+  .menu { display: grid; grid-template-columns: 1fr 1fr; gap: 12px; }
+  .item {
+    position: relative; border: 1px solid var(--line); background: var(--panel);
+    border-radius: var(--radius); padding: 18px 16px; text-align: left; cursor: pointer;
+    color: var(--ink); font: inherit; box-shadow: var(--shadow);
+    transition: transform .08s ease; min-height: 104px;
+    display: flex; flex-direction: column; justify-content: space-between;
+  }
+  .item:active { transform: scale(.97); }
+  .item .emoji { font-size: 30px; line-height: 1; }
+  .item .name { font-weight: 800; font-size: 18px; margin-top: 8px; letter-spacing: -.01em; }
+  .item .price { color: var(--ember); font-weight: 800; font-size: 17px; margin-top: 2px; }
+  .item .badge {
+    position: absolute; top: 10px; right: 10px; min-width: 26px; height: 26px; padding: 0 7px;
+    border-radius: 13px; background: var(--ember); color: var(--ember-ink);
+    font-size: 14px; font-weight: 800; display: none; align-items: center; justify-content: center;
+  }
+  .item[data-qty]:not([data-qty="0"]) .badge { display: flex; }
+  .item.full { grid-column: 1 / -1; flex-direction: row; align-items: center; min-height: 0; gap: 14px; }
+  .item.full .emoji { font-size: 26px; }
+  .item.full .name { margin-top: 0; }
+  .item.full .price { margin: 0 0 0 auto; }
+
+  /* Cart */
+  .cart { margin-top: 18px; }
+  .cart h2 { font-size: 13px; text-transform: uppercase; letter-spacing: .06em; color: var(--ink-soft); margin: 0 0 8px 2px; }
+  .cart-empty { color: var(--ink-soft); font-size: 15px; padding: 8px 2px 4px; }
+  .line {
+    display: flex; align-items: center; gap: 12px; background: var(--panel);
+    border: 1px solid var(--line); border-radius: 14px; padding: 10px 12px; margin-bottom: 9px;
+    box-shadow: var(--shadow);
+  }
+  .line .l-name { font-weight: 700; flex: 1; }
+  .line .l-name small { display: block; color: var(--ink-soft); font-weight: 600; font-size: 13px; }
+  .stepper { display: flex; align-items: center; gap: 4px; }
+  .stepper button {
+    width: 38px; height: 38px; border-radius: 10px; border: 1px solid var(--line);
+    background: var(--panel-2); color: var(--ink); font-size: 22px; font-weight: 700;
+    cursor: pointer; display: flex; align-items: center; justify-content: center; line-height: 1;
+  }
+  .stepper button:active { background: var(--line); }
+  .stepper .qty { min-width: 26px; text-align: center; font-weight: 800; font-size: 17px; }
+  .line .l-price { min-width: 52px; text-align: right; font-weight: 800; }
+
+  /* Footer / checkout bar */
+  .paybar {
+    position: sticky; bottom: 0; z-index: 20; margin-top: 16px;
+    background: color-mix(in srgb, var(--ground) 90%, transparent);
+    backdrop-filter: blur(10px); border-top: 1px solid var(--line);
+    padding: 12px 14px calc(12px + env(safe-area-inset-bottom));
+    display: flex; gap: 12px; align-items: center;
+  }
+  .totals { line-height: 1.1; }
+  .totals .lbl { font-size: 12px; text-transform: uppercase; letter-spacing: .06em; color: var(--ink-soft); font-weight: 700; }
+  .totals .amt { font-size: 30px; font-weight: 800; letter-spacing: -.02em; }
+  .paybar .grow { flex: 1; }
+  .btn {
+    border: 0; border-radius: 14px; font: inherit; font-weight: 800; cursor: pointer;
+    padding: 15px 20px; font-size: 17px;
+  }
+  .btn-pay { background: var(--paid); color: #fff; min-width: 148px; }
+  .btn-pay:disabled { opacity: .4; }
+  .btn-pay:active:not(:disabled) { filter: brightness(.94); }
+  .btn-clear { background: transparent; color: var(--ink-soft); border: 1px solid var(--line); padding: 15px 14px; }
+
+  /* Sales view */
+  .summary { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; margin-bottom: 16px; }
+  .tile { background: var(--panel); border: 1px solid var(--line); border-radius: 14px; padding: 13px 14px; box-shadow: var(--shadow); }
+  .tile.wide { grid-column: 1 / -1; background: var(--ember); border-color: transparent; }
+  .tile .k { font-size: 12px; text-transform: uppercase; letter-spacing: .05em; color: var(--ink-soft); font-weight: 700; }
+  .tile .v { font-size: 26px; font-weight: 800; margin-top: 3px; letter-spacing: -.01em; }
+  .tile.wide .k { color: color-mix(in srgb, var(--ember-ink) 75%, transparent); }
+  .tile.wide .v { color: var(--ember-ink); }
+
+  .sales-actions { display: flex; gap: 10px; margin-bottom: 16px; }
+  .sales-actions .btn { flex: 1; }
+  .btn-export { background: var(--ember); color: var(--ember-ink); }
+  .btn-reset { background: transparent; color: var(--ink-soft); border: 1px solid var(--line); }
+
+  .orders h2 { font-size: 13px; text-transform: uppercase; letter-spacing: .06em; color: var(--ink-soft); margin: 0 0 10px 2px; }
+  .order {
+    background: var(--panel); border: 1px solid var(--line); border-radius: 14px;
+    padding: 12px 14px; margin-bottom: 9px; box-shadow: var(--shadow);
+    display: flex; align-items: flex-start; gap: 10px;
+  }
+  .order .o-main { flex: 1; }
+  .order .o-top { display: flex; justify-content: space-between; align-items: baseline; gap: 10px; }
+  .order .o-num { font-weight: 800; }
+  .order .o-time { font-size: 13px; color: var(--ink-soft); }
+  .order .o-items { font-size: 14px; color: var(--ink-soft); margin-top: 3px; }
+  .order .o-total { font-weight: 800; font-size: 18px; white-space: nowrap; }
+  .void { background: none; border: 0; color: var(--ink-soft); font-size: 20px; cursor: pointer; padding: 2px 4px; line-height: 1; }
+  .empty-note { color: var(--ink-soft); text-align: center; padding: 30px 10px; }
+
+  .toast {
+    position: fixed; left: 50%; bottom: calc(96px + env(safe-area-inset-bottom));
+    transform: translateX(-50%) translateY(12px); opacity: 0;
+    background: var(--paid); color: #fff; font-weight: 700; padding: 11px 18px;
+    border-radius: 999px; box-shadow: var(--shadow); pointer-events: none;
+    transition: opacity .2s, transform .2s; z-index: 40; font-size: 15px;
+  }
+  .toast.show { opacity: 1; transform: translateX(-50%) translateY(0); }
+  @media (prefers-reduced-motion: reduce) { * { transition: none !important; } }
+</style>
+
+<header>
+  <div class="brand">
+    <span class="flame">🔥</span>
+    <h1>Fair BBQ Till</h1>
+    <span class="spacer"></span>
+    <span class="count" id="dayCount">0 orders</span>
+  </div>
+  <div class="tabs" role="tablist">
+    <button role="tab" id="tab-till" aria-selected="true" onclick="showView('till')">Till</button>
+    <button role="tab" id="tab-sales" aria-selected="false" onclick="showView('sales')">Sales</button>
+  </div>
+</header>
+
+<main>
+  <!-- TILL -->
+  <section class="view active" id="view-till">
+    <div class="menu" id="menu"></div>
+
+    <div class="cart">
+      <h2>Current order</h2>
+      <div id="cartBody"><div class="cart-empty">Tap an item above to start an order.</div></div>
+    </div>
+  </section>
+
+  <!-- SALES -->
+  <section class="view" id="view-sales">
+    <div class="summary" id="summary"></div>
+    <div class="sales-actions">
+      <button class="btn btn-export" onclick="exportCSV()">⬇︎ Export CSV</button>
+      <button class="btn btn-reset" onclick="resetDay()">Clear day</button>
+    </div>
+    <div class="orders">
+      <h2>Orders</h2>
+      <div id="ordersBody"></div>
+    </div>
+  </section>
+</main>
+
+<div class="paybar" id="paybar">
+  <div class="totals">
+    <div class="lbl">Total</div>
+    <div class="amt tnum" id="grandTotal">£0.00</div>
+  </div>
+  <span class="grow"></span>
+  <button class="btn btn-clear" id="btnClear" onclick="clearCart()">Clear</button>
+  <button class="btn btn-pay" id="btnPay" onclick="completeOrder()" disabled>Take payment</button>
+</div>
+
+<div class="toast" id="toast"></div>
+
+<script>
+  // --- Menu definition ---
+  const MENU = [
+    { id: "burger",  name: "Burger",       emoji: "🍔", price: 5, wide: false },
+    { id: "cheese",  name: "Cheeseburger", emoji: "🧀", price: 6, wide: false },
+    { id: "hotdog",  name: "Hotdog",       emoji: "🌭", price: 4, wide: true  },
+  ];
+  const PRICE = Object.fromEntries(MENU.map(m => [m.id, m.price]));
+  const NAME  = Object.fromEntries(MENU.map(m => [m.id, m.name]));
+  const STORE_KEY = "fairbbq.orders.v1";
+
+  // --- State ---
+  let cart = {};                 // id -> qty (current order)
+  let orders = loadOrders();     // completed orders
+
+  function loadOrders() {
+    try { return JSON.parse(localStorage.getItem(STORE_KEY)) || []; }
+    catch (e) { return []; }
+  }
+  function saveOrders() {
+    try { localStorage.setItem(STORE_KEY, JSON.stringify(orders)); } catch (e) {}
+  }
+  const gbp = n => "£" + n.toFixed(2);
+
+  // --- Build menu ---
+  function renderMenu() {
+    const el = document.getElementById("menu");
+    el.innerHTML = "";
+    for (const m of MENU) {
+      const b = document.createElement("button");
+      b.className = "item" + (m.wide ? " full" : "");
+      b.dataset.qty = cart[m.id] || 0;
+      b.setAttribute("aria-label", `Add ${m.name}, ${gbp(m.price)}`);
+      b.innerHTML =
+        `<span class="badge tnum">${cart[m.id] || 0}</span>
+         <span class="emoji">${m.emoji}</span>
+         <span class="name">${m.name}</span>
+         <span class="price tnum">${gbp(m.price)}</span>`;
+      b.onclick = () => add(m.id);
+      el.appendChild(b);
+    }
+  }
+  function refreshMenuBadges() {
+    document.querySelectorAll("#menu .item").forEach((b, i) => {
+      const id = MENU[i].id;
+      b.dataset.qty = cart[id] || 0;
+      b.querySelector(".badge").textContent = cart[id] || 0;
+    });
+  }
+
+  // --- Cart ops ---
+  function add(id)    { cart[id] = (cart[id] || 0) + 1; renderCart(); }
+  function sub(id)    { cart[id] = (cart[id] || 0) - 1; if (cart[id] <= 0) delete cart[id]; renderCart(); }
+  function clearCart(){ cart = {}; renderCart(); }
+
+  function cartTotal() {
+    return Object.entries(cart).reduce((s, [id, q]) => s + PRICE[id] * q, 0);
+  }
+  function cartCount() {
+    return Object.values(cart).reduce((s, q) => s + q, 0);
+  }
+
+  function renderCart() {
+    const body = document.getElementById("cartBody");
+    const ids = MENU.map(m => m.id).filter(id => cart[id] > 0);
+    if (ids.length === 0) {
+      body.innerHTML = `<div class="cart-empty">Tap an item above to start an order.</div>`;
+    } else {
+      body.innerHTML = ids.map(id => {
+        const q = cart[id];
+        return `<div class="line">
+            <div class="l-name">${NAME[id]}<small class="tnum">${gbp(PRICE[id])} each</small></div>
+            <div class="stepper">
+              <button aria-label="Remove one ${NAME[id]}" onclick="sub('${id}')">−</button>
+              <span class="qty tnum">${q}</span>
+              <button aria-label="Add one ${NAME[id]}" onclick="add('${id}')">+</button>
+            </div>
+            <div class="l-price tnum">${gbp(PRICE[id] * q)}</div>
+          </div>`;
+      }).join("");
+    }
+    const total = cartTotal();
+    document.getElementById("grandTotal").textContent = gbp(total);
+    document.getElementById("btnPay").disabled = total <= 0;
+    document.getElementById("btnPay").textContent = total > 0 ? `Take ${gbp(total)}` : "Take payment";
+    refreshMenuBadges();
+  }
+
+  // --- Complete an order ---
+  function completeOrder() {
+    if (cartTotal() <= 0) return;
+    const now = new Date();
+    orders.push({
+      n: orders.length + 1,
+      t: now.toISOString(),
+      items: { ...cart },
+      total: cartTotal(),
+    });
+    saveOrders();
+    const paid = cartTotal();
+    cart = {};
+    renderCart();
+    renderSales();
+    updateCount();
+    toast(`✓ Order taken · ${gbp(paid)}`);
+  }
+
+  // --- Sales view ---
+  function renderSales() {
+    // summary tiles
+    const totals = { burger: 0, cheese: 0, hotdog: 0 };
+    let takings = 0;
+    for (const o of orders) {
+      takings += o.total;
+      for (const [id, q] of Object.entries(o.items)) totals[id] = (totals[id] || 0) + q;
+    }
+    const sum = document.getElementById("summary");
+    sum.innerHTML =
+      `<div class="tile wide"><div class="k">Total takings</div><div class="v tnum">${gbp(takings)}</div></div>
+       <div class="tile"><div class="k">🍔 Burgers</div><div class="v tnum">${totals.burger}</div></div>
+       <div class="tile"><div class="k">🧀 Cheeseburgers</div><div class="v tnum">${totals.cheese}</div></div>
+       <div class="tile"><div class="k">🌭 Hotdogs</div><div class="v tnum">${totals.hotdog}</div></div>
+       <div class="tile"><div class="k">Orders</div><div class="v tnum">${orders.length}</div></div>`;
+
+    // order list (newest first)
+    const body = document.getElementById("ordersBody");
+    if (orders.length === 0) {
+      body.innerHTML = `<div class="empty-note">No orders yet. Takings will show up here as you serve.</div>`;
+      return;
+    }
+    body.innerHTML = orders.slice().reverse().map(o => {
+      const parts = MENU.filter(m => o.items[m.id] > 0)
+        .map(m => `${o.items[m.id]}× ${m.name}`).join(", ");
+      const time = new Date(o.t).toLocaleTimeString([], { hour: "2-digit", minute: "2-digit" });
+      return `<div class="order">
+          <div class="o-main">
+            <div class="o-top"><span class="o-num">#${o.n}</span><span class="o-time tnum">${time}</span></div>
+            <div class="o-items">${parts}</div>
+          </div>
+          <div class="o-total tnum">${gbp(o.total)}</div>
+          <button class="void" aria-label="Void order ${o.n}" onclick="voidOrder(${o.n})">✕</button>
+        </div>`;
+    }).join("");
+  }
+
+  function voidOrder(n) {
+    if (!confirm(`Void order #${n}? This removes it from the day's takings.`)) return;
+    orders = orders.filter(o => o.n !== n);
+    saveOrders();
+    renderSales();
+    updateCount();
+    toast(`Order #${n} voided`);
+  }
+
+  function updateCount() {
+    const c = orders.length;
+    document.getElementById("dayCount").textContent = `${c} order${c === 1 ? "" : "s"}`;
+  }
+
+  // --- CSV export ---
+  function exportCSV() {
+    if (orders.length === 0) { toast("No orders to export yet"); return; }
+    const rows = [["Order", "Time", "Burgers", "Cheeseburgers", "Hotdogs", "Items", "Total (£)"]];
+    for (const o of orders) {
+      const b = o.items.burger || 0, c = o.items.cheese || 0, h = o.items.hotdog || 0;
+      rows.push([o.n, new Date(o.t).toLocaleString(), b, c, h, b + c + h, o.total.toFixed(2)]);
+    }
+    // totals row
+    const tot = orders.reduce((a, o) => {
+      a.b += o.items.burger || 0; a.c += o.items.cheese || 0; a.h += o.items.hotdog || 0; a.sum += o.total;
+      return a;
+    }, { b: 0, c: 0, h: 0, sum: 0 });
+    rows.push(["TOTAL", "", tot.b, tot.c, tot.h, tot.b + tot.c + tot.h, tot.sum.toFixed(2)]);
+
+    const csv = rows.map(r => r.map(cell => {
+      const s = String(cell);
+      return /[",\n]/.test(s) ? `"${s.replace(/"/g, '""')}"` : s;
+    }).join(",")).join("\r\n");
+
+    const stamp = new Date().toISOString().slice(0, 16).replace(/[:T]/g, "-");
+    const blob = new Blob(["﻿" + csv], { type: "text/csv;charset=utf-8;" });
+    const url = URL.createObjectURL(blob);
+    const a = document.createElement("a");
+    a.href = url;
+    a.download = `bbq-sales-${stamp}.csv`;
+    document.body.appendChild(a);
+    a.click();
+    a.remove();
+    setTimeout(() => URL.revokeObjectURL(url), 2000);
+    toast("CSV downloaded");
+  }
+
+  function resetDay() {
+    if (orders.length === 0) { toast("Nothing to clear"); return; }
+    if (!confirm(`Clear all ${orders.length} orders for a fresh day?\n\nExport the CSV first if you want to keep them — this can't be undone.`)) return;
+    orders = [];
+    saveOrders();
+    renderSales();
+    updateCount();
+    toast("Day cleared");
+  }
+
+  // --- View switching ---
+  function showView(v) {
+    document.getElementById("view-till").classList.toggle("active", v === "till");
+    document.getElementById("view-sales").classList.toggle("active", v === "sales");
+    document.getElementById("tab-till").setAttribute("aria-selected", v === "till");
+    document.getElementById("tab-sales").setAttribute("aria-selected", v === "sales");
+    // hide the pay bar on the sales screen
+    document.getElementById("paybar").style.display = v === "till" ? "flex" : "none";
+    if (v === "sales") renderSales();
+  }
+
+  // --- Toast ---
+  let toastTimer;
+  function toast(msg) {
+    const t = document.getElementById("toast");
+    t.textContent = msg;
+    t.classList.add("show");
+    clearTimeout(toastTimer);
+    toastTimer = setTimeout(() => t.classList.remove("show"), 1800);
+  }
+
+  // --- Init ---
+  renderMenu();
+  renderCart();
+  renderSales();
+  updateCount();
+</script>
