@@ -10,36 +10,16 @@
     --line: #e7dccd;
     --ember: #d9531e;
     --ember-ink: #ffffff;
+    --deal: #b8471a;
     --paid: #2e7d46;
-    --paid-soft: #e7f2ea;
     --shadow: 0 1px 2px rgba(60, 40, 20, .08), 0 6px 20px rgba(60, 40, 20, .06);
     --radius: 16px;
   }
-  @media (prefers-color-scheme: dark) {
-    :root {
-      --ground: #17130f;
-      --panel: #221c16;
-      --panel-2: #2c241c;
-      --ink: #f2eae0;
-      --ink-soft: #b3a291;
-      --line: #372c22;
-      --ember: #f0762e;
-      --ember-ink: #1a1109;
-      --paid: #56c07a;
-      --paid-soft: #1f3325;
-      --shadow: 0 1px 2px rgba(0, 0, 0, .4), 0 6px 20px rgba(0, 0, 0, .35);
-    }
-  }
-  :root[data-theme="light"] {
-    --ground: #faf6f0; --panel: #ffffff; --panel-2: #f4ece2; --ink: #241c16;
-    --ink-soft: #6d5f52; --line: #e7dccd; --ember: #d9531e; --ember-ink: #ffffff;
-    --paid: #2e7d46; --paid-soft: #e7f2ea;
-    --shadow: 0 1px 2px rgba(60,40,20,.08), 0 6px 20px rgba(60,40,20,.06);
-  }
+  /* Dark theme tokens — only used if the operator flips the ☀︎/☾ toggle. */
   :root[data-theme="dark"] {
     --ground: #17130f; --panel: #221c16; --panel-2: #2c241c; --ink: #f2eae0;
     --ink-soft: #b3a291; --line: #372c22; --ember: #f0762e; --ember-ink: #1a1109;
-    --paid: #56c07a; --paid-soft: #1f3325;
+    --deal: #f0762e; --paid: #56c07a;
     --shadow: 0 1px 2px rgba(0,0,0,.4), 0 6px 20px rgba(0,0,0,.35);
   }
 
@@ -71,6 +51,12 @@
   .brand .flame { font-size: 22px; }
   .brand .spacer { flex: 1; }
   .brand .count { font-size: 13px; color: var(--ink-soft); font-weight: 600; }
+  .theme-btn {
+    border: 1px solid var(--line); background: var(--panel); color: var(--ink);
+    width: 38px; height: 38px; border-radius: 10px; font-size: 17px; cursor: pointer;
+    display: flex; align-items: center; justify-content: center; box-shadow: var(--shadow);
+  }
+  .theme-btn:active { background: var(--panel-2); }
 
   .tabs { display: flex; gap: 6px; background: var(--panel-2); padding: 4px; border-radius: 12px; }
   .tabs button {
@@ -88,25 +74,32 @@
   .menu { display: grid; grid-template-columns: 1fr 1fr; gap: 12px; }
   .item {
     position: relative; border: 1px solid var(--line); background: var(--panel);
-    border-radius: var(--radius); padding: 18px 16px; text-align: left; cursor: pointer;
+    border-radius: var(--radius); padding: 16px; text-align: left; cursor: pointer;
     color: var(--ink); font: inherit; box-shadow: var(--shadow);
-    transition: transform .08s ease; min-height: 104px;
+    transition: transform .08s ease; min-height: 118px;
     display: flex; flex-direction: column; justify-content: space-between;
   }
   .item:active { transform: scale(.97); }
   .item .emoji { font-size: 30px; line-height: 1; }
   .item .name { font-weight: 800; font-size: 18px; margin-top: 8px; letter-spacing: -.01em; }
   .item .price { color: var(--ember); font-weight: 800; font-size: 17px; margin-top: 2px; }
+  .item .deal-tag {
+    display: inline-block; margin-top: 6px; font-size: 12.5px; font-weight: 700;
+    color: var(--deal); background: color-mix(in srgb, var(--deal) 12%, transparent);
+    padding: 2px 8px; border-radius: 999px; letter-spacing: .01em; align-self: flex-start;
+  }
   .item .badge {
     position: absolute; top: 10px; right: 10px; min-width: 26px; height: 26px; padding: 0 7px;
     border-radius: 13px; background: var(--ember); color: var(--ember-ink);
     font-size: 14px; font-weight: 800; display: none; align-items: center; justify-content: center;
   }
   .item[data-qty]:not([data-qty="0"]) .badge { display: flex; }
-  .item.full { grid-column: 1 / -1; flex-direction: row; align-items: center; min-height: 0; gap: 14px; }
+  .item.full { grid-column: 1 / -1; flex-direction: row; align-items: center; min-height: 0; gap: 14px; padding: 14px 16px; }
   .item.full .emoji { font-size: 26px; }
   .item.full .name { margin-top: 0; }
-  .item.full .price { margin: 0 0 0 auto; }
+  .item.full .stack { display: flex; flex-direction: column; }
+  .item.full .deal-tag { margin-top: 4px; }
+  .item.full .price { margin: 0 0 0 auto; font-size: 18px; }
 
   /* Cart */
   .cart { margin-top: 18px; }
@@ -119,6 +112,7 @@
   }
   .line .l-name { font-weight: 700; flex: 1; }
   .line .l-name small { display: block; color: var(--ink-soft); font-weight: 600; font-size: 13px; }
+  .line .l-name small.saved { color: var(--paid); }
   .stepper { display: flex; align-items: center; gap: 4px; }
   .stepper button {
     width: 38px; height: 38px; border-radius: 10px; border: 1px solid var(--line);
@@ -127,7 +121,7 @@
   }
   .stepper button:active { background: var(--line); }
   .stepper .qty { min-width: 26px; text-align: center; font-weight: 800; font-size: 17px; }
-  .line .l-price { min-width: 52px; text-align: right; font-weight: 800; }
+  .line .l-price { min-width: 56px; text-align: right; font-weight: 800; }
 
   /* Footer / checkout bar */
   .paybar {
@@ -156,7 +150,7 @@
   .tile.wide { grid-column: 1 / -1; background: var(--ember); border-color: transparent; }
   .tile .k { font-size: 12px; text-transform: uppercase; letter-spacing: .05em; color: var(--ink-soft); font-weight: 700; }
   .tile .v { font-size: 26px; font-weight: 800; margin-top: 3px; letter-spacing: -.01em; }
-  .tile.wide .k { color: color-mix(in srgb, var(--ember-ink) 75%, transparent); }
+  .tile.wide .k { color: color-mix(in srgb, var(--ember-ink) 78%, transparent); }
   .tile.wide .v { color: var(--ember-ink); }
 
   .sales-actions { display: flex; gap: 10px; margin-bottom: 16px; }
@@ -195,6 +189,7 @@
     <span class="flame">🔥</span>
     <h1>Fair BBQ Till</h1>
     <span class="spacer"></span>
+    <button class="theme-btn" id="themeBtn" aria-label="Switch between light and dark" onclick="toggleTheme()">☀︎</button>
     <span class="count" id="dayCount">0 orders</span>
   </div>
   <div class="tabs" role="tablist">
@@ -241,15 +236,32 @@
 <div class="toast" id="toast"></div>
 
 <script>
-  // --- Menu definition ---
+  // --- Menu definition (prices from the stall's board) ---
+  //  deal: { qty, price } means every `qty` of that item together cost `price`.
   const MENU = [
-    { id: "burger",  name: "Burger",       emoji: "🍔", price: 5, wide: false },
-    { id: "cheese",  name: "Cheeseburger", emoji: "🧀", price: 6, wide: false },
-    { id: "hotdog",  name: "Hotdog",       emoji: "🌭", price: 4, wide: true  },
+    { id: "burger", name: "Burger",       emoji: "🍔", price: 3.50, deal: { qty: 2, price: 6 }, tag: "2 for £6", wide: false },
+    { id: "hotdog", name: "Hotdog",       emoji: "🌭", price: 2.50, deal: { qty: 2, price: 4 }, tag: "2 for £4", wide: false },
+    { id: "cheese", name: "Cheese slice", emoji: "🧀", price: 0.50, deal: null,                 tag: "add-on",   wide: true  },
   ];
-  const PRICE = Object.fromEntries(MENU.map(m => [m.id, m.price]));
-  const NAME  = Object.fromEntries(MENU.map(m => [m.id, m.name]));
-  const STORE_KEY = "fairbbq.orders.v1";
+  const BY_ID = Object.fromEntries(MENU.map(m => [m.id, m]));
+  const STORE_KEY = "fairbbq.orders.v2";
+  const THEME_KEY = "fairbbq.theme";
+
+  // --- Theme (default light for daytime/outdoors) ---
+  function applyTheme(mode) {
+    document.documentElement.setAttribute("data-theme", mode);
+    document.getElementById("themeBtn").textContent = mode === "dark" ? "☾" : "☀︎";
+  }
+  function toggleTheme() {
+    const next = document.documentElement.getAttribute("data-theme") === "dark" ? "light" : "dark";
+    try { localStorage.setItem(THEME_KEY, next); } catch (e) {}
+    applyTheme(next);
+  }
+  (function initTheme() {
+    let saved = "light";
+    try { saved = localStorage.getItem(THEME_KEY) || "light"; } catch (e) {}
+    applyTheme(saved);
+  })();
 
   // --- State ---
   let cart = {};                 // id -> qty (current order)
@@ -264,6 +276,19 @@
   }
   const gbp = n => "£" + n.toFixed(2);
 
+  // Price for a quantity of one item, applying its 2-for deal to each pair.
+  function lineTotal(id, q) {
+    const m = BY_ID[id];
+    if (m.deal) {
+      const bundles = Math.floor(q / m.deal.qty);
+      const rem = q % m.deal.qty;
+      return bundles * m.deal.price + rem * m.price;
+    }
+    return q * m.price;
+  }
+  // Full (undiscounted) price, so we can show the saving.
+  function lineFull(id, q) { return BY_ID[id].price * q; }
+
   // --- Build menu ---
   function renderMenu() {
     const el = document.getElementById("menu");
@@ -272,12 +297,22 @@
       const b = document.createElement("button");
       b.className = "item" + (m.wide ? " full" : "");
       b.dataset.qty = cart[m.id] || 0;
-      b.setAttribute("aria-label", `Add ${m.name}, ${gbp(m.price)}`);
-      b.innerHTML =
-        `<span class="badge tnum">${cart[m.id] || 0}</span>
-         <span class="emoji">${m.emoji}</span>
-         <span class="name">${m.name}</span>
-         <span class="price tnum">${gbp(m.price)}</span>`;
+      b.setAttribute("aria-label", `Add ${m.name}, ${gbp(m.price)}${m.deal ? ", " + m.tag : ""}`);
+      const tag = `<span class="deal-tag">${m.tag}</span>`;
+      if (m.wide) {
+        b.innerHTML =
+          `<span class="badge tnum">${cart[m.id] || 0}</span>
+           <span class="emoji">${m.emoji}</span>
+           <span class="stack"><span class="name">${m.name}</span>${tag}</span>
+           <span class="price tnum">+${gbp(m.price)}</span>`;
+      } else {
+        b.innerHTML =
+          `<span class="badge tnum">${cart[m.id] || 0}</span>
+           <span class="emoji">${m.emoji}</span>
+           <span class="name">${m.name}</span>
+           <span class="price tnum">${gbp(m.price)}</span>
+           ${tag}`;
+      }
       b.onclick = () => add(m.id);
       el.appendChild(b);
     }
@@ -296,10 +331,7 @@
   function clearCart(){ cart = {}; renderCart(); }
 
   function cartTotal() {
-    return Object.entries(cart).reduce((s, [id, q]) => s + PRICE[id] * q, 0);
-  }
-  function cartCount() {
-    return Object.values(cart).reduce((s, q) => s + q, 0);
+    return Object.entries(cart).reduce((s, [id, q]) => s + lineTotal(id, q), 0);
   }
 
   function renderCart() {
@@ -310,14 +342,19 @@
     } else {
       body.innerHTML = ids.map(id => {
         const q = cart[id];
+        const price = lineTotal(id, q);
+        const saved = lineFull(id, q) - price;
+        const sub = saved > 0.001
+          ? `<small class="saved tnum">deal applied · saved ${gbp(saved)}</small>`
+          : `<small class="tnum">${gbp(BY_ID[id].price)} each</small>`;
         return `<div class="line">
-            <div class="l-name">${NAME[id]}<small class="tnum">${gbp(PRICE[id])} each</small></div>
+            <div class="l-name">${BY_ID[id].name}${sub}</div>
             <div class="stepper">
-              <button aria-label="Remove one ${NAME[id]}" onclick="sub('${id}')">−</button>
+              <button aria-label="Remove one ${BY_ID[id].name}" onclick="sub('${id}')">−</button>
               <span class="qty tnum">${q}</span>
-              <button aria-label="Add one ${NAME[id]}" onclick="add('${id}')">+</button>
+              <button aria-label="Add one ${BY_ID[id].name}" onclick="add('${id}')">+</button>
             </div>
-            <div class="l-price tnum">${gbp(PRICE[id] * q)}</div>
+            <div class="l-price tnum">${gbp(price)}</div>
           </div>`;
       }).join("");
     }
@@ -330,16 +367,16 @@
 
   // --- Complete an order ---
   function completeOrder() {
-    if (cartTotal() <= 0) return;
+    const paid = cartTotal();
+    if (paid <= 0) return;
     const now = new Date();
     orders.push({
-      n: orders.length + 1,
+      n: (orders.length ? orders[orders.length - 1].n : 0) + 1,
       t: now.toISOString(),
       items: { ...cart },
-      total: cartTotal(),
+      total: paid,
     });
     saveOrders();
-    const paid = cartTotal();
     cart = {};
     renderCart();
     renderSales();
@@ -349,8 +386,7 @@
 
   // --- Sales view ---
   function renderSales() {
-    // summary tiles
-    const totals = { burger: 0, cheese: 0, hotdog: 0 };
+    const totals = { burger: 0, hotdog: 0, cheese: 0 };
     let takings = 0;
     for (const o of orders) {
       takings += o.total;
@@ -360,11 +396,10 @@
     sum.innerHTML =
       `<div class="tile wide"><div class="k">Total takings</div><div class="v tnum">${gbp(takings)}</div></div>
        <div class="tile"><div class="k">🍔 Burgers</div><div class="v tnum">${totals.burger}</div></div>
-       <div class="tile"><div class="k">🧀 Cheeseburgers</div><div class="v tnum">${totals.cheese}</div></div>
        <div class="tile"><div class="k">🌭 Hotdogs</div><div class="v tnum">${totals.hotdog}</div></div>
+       <div class="tile"><div class="k">🧀 Cheese slices</div><div class="v tnum">${totals.cheese}</div></div>
        <div class="tile"><div class="k">Orders</div><div class="v tnum">${orders.length}</div></div>`;
 
-    // order list (newest first)
     const body = document.getElementById("ordersBody");
     if (orders.length === 0) {
       body.innerHTML = `<div class="empty-note">No orders yet. Takings will show up here as you serve.</div>`;
@@ -402,17 +437,16 @@
   // --- CSV export ---
   function exportCSV() {
     if (orders.length === 0) { toast("No orders to export yet"); return; }
-    const rows = [["Order", "Time", "Burgers", "Cheeseburgers", "Hotdogs", "Items", "Total (£)"]];
+    const rows = [["Order", "Time", "Burgers", "Hotdogs", "Cheese slices", "Total (£)"]];
     for (const o of orders) {
-      const b = o.items.burger || 0, c = o.items.cheese || 0, h = o.items.hotdog || 0;
-      rows.push([o.n, new Date(o.t).toLocaleString(), b, c, h, b + c + h, o.total.toFixed(2)]);
+      const b = o.items.burger || 0, h = o.items.hotdog || 0, c = o.items.cheese || 0;
+      rows.push([o.n, new Date(o.t).toLocaleString(), b, h, c, o.total.toFixed(2)]);
     }
-    // totals row
     const tot = orders.reduce((a, o) => {
-      a.b += o.items.burger || 0; a.c += o.items.cheese || 0; a.h += o.items.hotdog || 0; a.sum += o.total;
+      a.b += o.items.burger || 0; a.h += o.items.hotdog || 0; a.c += o.items.cheese || 0; a.sum += o.total;
       return a;
-    }, { b: 0, c: 0, h: 0, sum: 0 });
-    rows.push(["TOTAL", "", tot.b, tot.c, tot.h, tot.b + tot.c + tot.h, tot.sum.toFixed(2)]);
+    }, { b: 0, h: 0, c: 0, sum: 0 });
+    rows.push(["TOTAL", "", tot.b, tot.h, tot.c, tot.sum.toFixed(2)]);
 
     const csv = rows.map(r => r.map(cell => {
       const s = String(cell);
@@ -448,7 +482,6 @@
     document.getElementById("view-sales").classList.toggle("active", v === "sales");
     document.getElementById("tab-till").setAttribute("aria-selected", v === "till");
     document.getElementById("tab-sales").setAttribute("aria-selected", v === "sales");
-    // hide the pay bar on the sales screen
     document.getElementById("paybar").style.display = v === "till" ? "flex" : "none";
     if (v === "sales") renderSales();
   }
